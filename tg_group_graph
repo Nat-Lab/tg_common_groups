@@ -1,35 +1,38 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo -n "GraphPlot[{"
 
 temp_dir="$(mktemp -d)"
+uc="$(mktemp)"
+
+[[ ! -z $1 ]] && gs="$(jq '.[] .peer_id' < cache/$1.txt.json)"
 
 for group in cache/*.json
 do
-	(grep -qE '^{"result": "FAIL",' < $group) && continue
+	gname="${group%.txt.json}"
+	gname="${gname##*/}"
 
-	gname=$(awk -F"/" '{print $2}' <<< "$group" | awk -F".txt.json" '{print $1}')
-
-	infos="$(jq '.[] .print_name, .[] .peer_id' < "$group")"
+	infos="$(jq '.[] .print_name, .[] .peer_id' < "$group" 2> /dev/null)" || continue
 
 	_c_infos="$(($(wc -l <<< "$infos")/2))"
-	count=0
+	count=$_c_infos
 	head -n$_c_infos <<< "$infos" | while read -r uname
 	do
+		mapfile -s$count -n1 uid <<< "$infos"
 		let count++
-		uid="$(tail -n$_c_infos <<< "$infos" | sed "${count}q;d")"
 		[[ ! -z $1 ]] && {
 			[[ $uid == $2 ]] && continue
-			(grep -q " $uid," < cache/$1.txt.json) || continue
+			[[ $gs == *"$uid"* ]] || continue
 		}
 		echo "$uname -> \"$gname\", " >> $temp_dir/$uid
+		echo "$uid" >> $uc
 	done
 
 done
 
-for f in $temp_dir/*
+for f in $(sort $uc | uniq -d)
 do
-	[[ $(wc -l < $f) -gt 1 ]] && cat $f
+	cat $temp_dir/$f
 done | tr -d '\n' | sed -e 's/, $//;'
 
 echo -n "}, VertexLabeling -> True]"
