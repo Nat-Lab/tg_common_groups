@@ -6,10 +6,10 @@
 若要使用，安裝 jq，並編譯 telegram-cli，使用如下參數啟動 tg-cli：
 
 ```
-telegram-cli -P 9009 --json
+telegram-cli -P 9000 --json
 ```
 
-然後就可以使用 `./tg_common_groups` 查看共同群組了。
+然後就可以使用 `./tg_common_groups <用戶名> --update` 查看共同群組了。
 
 查詢一次過後，會生成 `cache` 文件夾。內有全部群組信息。 這時，可以使用 `tg_group_graph` 生成 mathematica 的 Graph 語句，繪製 成員-群組 關係網。
 

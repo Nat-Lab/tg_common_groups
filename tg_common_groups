@@ -1,5 +1,9 @@
 #!/bin/bash
 
+[[ ! -d ./cache ]] && {
+	mkdir cache || exit 1
+}
+
 group_list="$(./tgcli_rpc channel_list | jq ".[] .print_name" | sed -e 's/^"//; s/"$//;')"
 groups_count="$(wc -l <<< "$group_list" | tr -d ' \t')"
 [[ $groups_count == 0 ]] && echo "no groups found, exiting." || echo "$groups_count group(s) found."
