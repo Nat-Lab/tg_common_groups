@@ -1,0 +1,26 @@
+#!/bin/bash
+
+group_list="$(./tgcli_rpc channel_list | jq ".[] .print_name" | sed -e 's/^"//; s/"$//;')"
+groups_count="$(wc -l <<< "$group_list" | tr -d ' \t')"
+[[ $groups_count == 0 ]] && echo "no groups found, exiting." || echo "$groups_count group(s) found."
+target_id="$(./tgcli_rpc user_info @$1 | jq ".peer_id")"
+[[ -z $target_id ]] && echo "can't get id for user @$1." && exit 0
+common=0
+
+for group in $group_list
+do
+	[[ ! -e "cache/$group.txt" ]] && {
+		./tgcli_rpc channel_get_members "$group" > "cache/$group.txt"
+		jq ".[] .peer_id" < "cache/$group.txt" > "cache/$group.txt.new"
+		mv "cache/$group.txt.new" "cache/$group.txt"
+	}
+	[[ "$2" == "--update" ]] && {
+		./tgcli_rpc channel_get_members "$group" > "cache/$group.txt.json"
+		jq ".[] .peer_id" < "cache/$group.txt.json" >> "cache/$group.txt"
+		sort "cache/$group.txt" | uniq > "cache/$group.txt.new"
+		mv "cache/$group.txt.new" "cache/$group.txt"
+	}
+	(grep -q "$target_id" < "cache/$group.txt") && echo "$group" && let common++
+done 2> /dev/null
+
+echo "$common common groups found."

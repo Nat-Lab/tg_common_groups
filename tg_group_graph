@@ -1,0 +1,37 @@
+#!/bin/bash
+
+echo -n "GraphPlot[{"
+
+temp_dir="$(mktemp -d)"
+
+for group in cache/*.json
+do
+	(grep -qE '^{"result": "FAIL",' < $group) && continue
+
+	gname=$(awk -F"/" '{print $2}' <<< "$group" | awk -F".txt.json" '{print $1}')
+
+	infos="$(jq '.[] .print_name, .[] .peer_id' < "$group")"
+
+	_c_infos="$(($(wc -l <<< "$infos")/2))"
+	count=0
+	head -n$_c_infos <<< "$infos" | while read -r uname
+	do
+		let count++
+		uid="$(tail -n$_c_infos <<< "$infos" | sed "${count}q;d")"
+		[[ ! -z $1 ]] && {
+			[[ $uid == $2 ]] && continue
+			(grep -q " $uid," < cache/$1.txt.json) || continue
+		}
+		echo "$uname -> \"$gname\", " >> $temp_dir/$uid
+	done
+
+done
+
+for f in $temp_dir/*
+do
+	[[ $(wc -l < $f) -gt 1 ]] && cat $f
+done | tr -d '\n' | sed -e 's/, $//;'
+
+echo -n "}, VertexLabeling -> True]"
+rm -r $temp_dir
+

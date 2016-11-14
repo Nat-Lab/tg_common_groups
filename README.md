@@ -15,5 +15,9 @@ telegram-cli -P 9009 --json
 
 妳可以不使用任何參數調用 `tg_group_graph`。也可以為其指定來源群組。用法是：`tg_group_graph [src_group_name <your_user_id>]`，`src_group_name` 指定群組名稱。你可以在 `cache/` 裡邊看到它們。就是那段在 `.txt.json` 之前的字符。如果指定了來源組，也必須指定 `your_user_id`。是妳在 telegram 的數字 ID。
 
+例：一個沒有限制來源組的關係網。
+
+![一個沒有限制來源組的關係網](https://raw.githubusercontent.com/Nat-Lab/tg_common_groups/master/tg_net.png)
+
 ### Licence ###
 MIT Licence

@@ -1,0 +1,15 @@
+#!/bin/bash
+# tg_lastonline: get lastonline of a user.
+
+tgcli_port=9000
+tgcli_server="127.0.0.1"
+
+exec 3<>/dev/tcp/$tgcli_server/$tgcli_port
+
+function cli_exec {
+	echo "$*" >&3
+	head -n2 <&3 | tail -n1
+}
+
+
+cli_exec $*
